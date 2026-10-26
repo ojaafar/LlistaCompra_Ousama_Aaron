@@ -1,3 +1,22 @@
 <resources>
     <string name="app_name">LlistaCompra_Ousama_Aaron</string>
+    <string name="titol_acces">Llista de la compra</string>
+    <string name="indicacio_acces">Entra al teu compte o crea’n un per començar.</string>
+    <string name="correu">Correu electrònic</string>
+    <string name="contrasenya">Contrasenya</string>
+    <string name="entrar">Iniciar sessió</string>
+    <string name="crear_compte">Crear compte</string>
+    <string name="sessio_iniciada">Sessió iniciada</string>
+    <string name="tancar_sessio">Tancar sessió</string>
+    <string name="carregant">Carregant</string>
+
+    <string name="error_correu">Escriu un correu electrònic vàlid.</string>
+    <string name="error_contrasenya_buida">Escriu la contrasenya.</string>
+    <string name="error_contrasenya_curta">Per crear el compte, utilitza almenys 6 caràcters.</string>
+    <string name="error_contrasenya_debil">La contrasenya no compleix els requisits. Prova’n una de més llarga.</string>
+    <string name="error_credencials">No s’ha pogut iniciar sessió. Revisa el correu i la contrasenya.</string>
+    <string name="error_compte_existent">Aquest correu ja està associat a un compte. Prova d’iniciar sessió.</string>
+    <string name="error_xarxa">Comprova la connexió a Internet i torna-ho a provar.</string>
+    <string name="error_intents">S’han fet massa intents. Espera una estona i torna-ho a provar.</string>
+    <string name="error_general">No s’ha pogut completar l’operació. Torna-ho a provar.</string>
 </resources>
