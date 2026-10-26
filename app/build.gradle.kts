@@ -1,5 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
+
+    // Procesa la configuración de google-services.json.
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -39,6 +42,16 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
+
+    // Coordina las versiones de las bibliotecas de Firebase.
+    implementation(platform(libs.firebase.bom))
+
+    // Registro e inicio de sesión.
+    implementation(libs.firebase.auth)
+
+    // Base de datos para listas, categorías y productos.
+    implementation(libs.firebase.firestore)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)

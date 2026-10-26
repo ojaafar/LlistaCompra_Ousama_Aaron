@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "422666096525",
+    "project_id": "listacompraoa",
+    "storage_bucket": "listacompraoa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:422666096525:android:ed3793d7762f73097e37c4",
+        "android_client_info": {
+          "package_name": "org.insbaixcamp.listacompra"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoYkneDAhsMTodQVBb8YeRX0bgnxI1F2I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:422666096525:android:2993d8915b8e2ca37e37c4",
+        "android_client_info": {
+          "package_name": "org.insbaixcamp.llistacompra_ousama_aaron"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoYkneDAhsMTodQVBb8YeRX0bgnxI1F2I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
