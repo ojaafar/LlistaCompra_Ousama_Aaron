@@ -1,0 +1,48 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function sessioIniciada() {
+      return request.auth != null;
+    }
+
+    function llistaNovaValida() {
+      let dades = request.resource.data;
+
+      return dades.keys().hasAll([
+          'nom', 'propietariId', 'membres', 'creadaEl'
+        ])
+        && dades.keys().hasOnly([
+          'nom', 'propietariId', 'membres', 'creadaEl'
+        ])
+
+        // El nom ha de tenir entre 1 i 80 caràcters.
+        && dades.nom is string
+        && dades.nom == dades.nom.trim()
+        && dades.nom.size() > 0
+        && dades.nom.size() <= 80
+
+        // Qui crea la llista n'és el propietari.
+        && dades.propietariId == request.auth.uid
+
+        // Inicialment, només hi té accés el creador.
+        && dades.membres is list
+        && dades.membres == [request.auth.uid]
+
+        // La data ha de venir del servidor.
+        && dades.creadaEl == request.time;
+    }
+
+    match /llistes/{llistaId} {
+      allow create: if sessioIniciada()
+                    && llistaNovaValida();
+
+      allow read: if sessioIniciada()
+                  && request.auth.uid in resource.data.membres;
+
+      // Afegirem aquests permisos amb les funcions corresponents.
+      allow update, delete: if false;
+    }
+  }
+}
