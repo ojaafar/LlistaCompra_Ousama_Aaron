@@ -10,19 +10,18 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:gravity="center_vertical"
+        android:orientation="vertical"
         android:padding="24dp">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
             android:text="@string/titol_acces"
             android:textSize="28sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="24dp" />
+            android:textStyle="bold" />
 
-        <!-- Formulario visible cuando no hay sesión iniciada. -->
         <LinearLayout
             android:id="@+id/formulari"
             android:layout_width="match_parent"
@@ -32,30 +31,29 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/indicacio_acces"
-                android:textSize="16sp"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="16dp"
+                android:text="@string/indicacio_acces" />
 
             <EditText
                 android:id="@+id/etCorreu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="48dp"
-                android:hint="@string/correu"
-                android:inputType="textEmailAddress"
                 android:autofillHints="emailAddress"
-                android:singleLine="true"
-                android:imeOptions="actionNext" />
+                android:hint="@string/correu"
+                android:imeOptions="actionNext"
+                android:inputType="textEmailAddress"
+                android:minHeight="48dp"
+                android:singleLine="true" />
 
             <EditText
                 android:id="@+id/etContrasenya"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="48dp"
                 android:layout_marginTop="12dp"
+                android:autofillHints="password"
                 android:hint="@string/contrasenya"
                 android:inputType="textPassword"
-                android:autofillHints="password"
+                android:minHeight="48dp"
                 android:saveEnabled="false"
                 android:singleLine="true" />
 
@@ -64,8 +62,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:textColor="?attr/colorError"
                 android:accessibilityLiveRegion="polite"
+                android:textColor="?attr/colorError"
                 android:visibility="gone" />
 
             <Button
@@ -84,7 +82,6 @@
 
         </LinearLayout>
 
-        <!-- Indicador visible mientras Firebase responde. -->
         <ProgressBar
             android:id="@+id/progressBar"
             android:layout_width="48dp"
@@ -94,7 +91,6 @@
             android:contentDescription="@string/carregant"
             android:visibility="gone" />
 
-        <!-- Panel visible cuando el usuario ha entrado. -->
         <LinearLayout
             android:id="@+id/panellSessio"
             android:layout_width="match_parent"
@@ -114,14 +110,21 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:textSize="16sp"
-                android:textIsSelectable="true" />
+                android:textIsSelectable="true"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/btnObrirLlistes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/les_meves_llistes" />
 
             <Button
                 android:id="@+id/btnSortir"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="8dp"
                 android:text="@string/tancar_sessio" />
 
         </LinearLayout>
