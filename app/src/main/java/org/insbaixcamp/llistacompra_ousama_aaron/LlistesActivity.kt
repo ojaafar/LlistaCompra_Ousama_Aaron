@@ -18,6 +18,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.MetadataChanges
+import android.content.Intent
 
 class LlistesActivity : AppCompatActivity() {
 
@@ -31,6 +32,8 @@ class LlistesActivity : AppCompatActivity() {
 
     private var escoltaLlistes: ListenerRegistration? = null
     private var creant = false
+
+    private var idsLlistes: List<String> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,6 +72,20 @@ class LlistesActivity : AppCompatActivity() {
         )
 
         findViewById<ListView>(R.id.lvLlistes).adapter = adaptador
+        findViewById<ListView>(R.id.lvLlistes)
+            .setOnItemClickListener { _, _, posicio, _ ->
+                val id = idsLlistes.getOrNull(posicio)
+                    ?: return@setOnItemClickListener
+
+                val nom = adaptador.getItem(posicio).orEmpty()
+
+                val pantalla = Intent(this, CategoriesActivity::class.java).apply {
+                    putExtra("llistaId", id)
+                    putExtra("llistaNom", nom)
+                }
+
+                startActivity(pantalla)
+            }
 
         btnCrearLlista.setOnClickListener {
             crearLlista()
@@ -133,9 +150,14 @@ class LlistesActivity : AppCompatActivity() {
                 val documents = resultat ?: return@addSnapshotListener
 
                 // Ordenem els noms alfabèticament al mòbil.
-                val noms = documents.documents
-                    .mapNotNull { document -> document.getString("nom") }
-                    .sortedBy { nom -> nom.lowercase() }
+                // Conservem junts l'identificador i el nom de cada llista.
+                val llistesOrdenades = documents.documents.mapNotNull { document ->
+                    val nom = document.getString("nom") ?: return@mapNotNull null
+                    document.id to nom
+                }.sortedBy { it.second.lowercase() }
+
+                idsLlistes = llistesOrdenades.map { it.first }
+                val noms = llistesOrdenades.map { it.second }
 
                 adaptador.clear()
                 adaptador.addAll(noms)

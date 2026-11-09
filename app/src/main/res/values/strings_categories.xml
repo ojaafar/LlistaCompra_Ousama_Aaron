@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="categories_titol">Categories de %1$s</string>
+    <string name="categories_indicacio">Toca una categoria per canviar-ne el nom o eliminar-la.</string>
+    <string name="categories_afegir">Afegir categoria</string>
+    <string name="categories_nova">Nova categoria</string>
+    <string name="categories_nom">Nom de la categoria</string>
+    <string name="categories_editar">Canviar el nom</string>
+    <string name="categories_eliminar">Eliminar categoria</string>
+    <string name="categories_confirmar_eliminar">Vols eliminar la categoria «%1$s»?</string>
+    <string name="categories_desar">Desar</string>
+    <string name="categories_cancel">Cancel·lar</string>
+    <string name="categories_tornar">Tornar a les llistes</string>
+    <string name="categories_carregant">Carregant les categories…</string>
+    <string name="categories_buides">Encara no hi ha categories en aquesta llista.</string>
+    <string name="categories_cache">Mostrant dades locals. Esperant sincronització…</string>
+    <string name="categories_pendents">Hi ha canvis pendents de sincronitzar.</string>
+    <string name="categories_error_nom">Escriu un nom d’entre 1 i 80 caràcters.</string>
+    <string name="categories_error_llegir">No s’han pogut carregar les categories. Torna a entrar en aquesta pantalla.</string>
+    <string name="categories_error_desar">No s’ha pogut completar el canvi. Torna-ho a provar.</string>
+    <string name="categories_canvi_desat">Canvi desat.</string>
+</resources>

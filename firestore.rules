@@ -7,6 +7,19 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function nomValid(nom) {
+      return nom is string
+        && nom == nom.trim()
+        && nom.size() > 0
+        && nom.size() <= 80;
+    }
+
+    function esMembre(llistaId) {
+      return sessioIniciada()
+        && request.auth.uid in
+          get(/databases/$(database)/documents/llistes/$(llistaId)).data.membres;
+    }
+
     function llistaNovaValida() {
       let dades = request.resource.data;
 
@@ -16,22 +29,20 @@ service cloud.firestore {
         && dades.keys().hasOnly([
           'nom', 'propietariId', 'membres', 'creadaEl'
         ])
-
-        // El nom ha de tenir entre 1 i 80 caràcters.
-        && dades.nom is string
-        && dades.nom == dades.nom.trim()
-        && dades.nom.size() > 0
-        && dades.nom.size() <= 80
-
-        // Qui crea la llista n'és el propietari.
+        && nomValid(dades.nom)
         && dades.propietariId == request.auth.uid
-
-        // Inicialment, només hi té accés el creador.
         && dades.membres is list
         && dades.membres == [request.auth.uid]
-
-        // La data ha de venir del servidor.
         && dades.creadaEl == request.time;
+    }
+
+    function categoriaValida() {
+      let dades = request.resource.data;
+
+      return dades.keys().hasAll(['nom', 'creadaEl'])
+        && dades.keys().hasOnly(['nom', 'creadaEl'])
+        && nomValid(dades.nom)
+        && dades.creadaEl is timestamp;
     }
 
     match /llistes/{llistaId} {
@@ -41,8 +52,23 @@ service cloud.firestore {
       allow read: if sessioIniciada()
                   && request.auth.uid in resource.data.membres;
 
-      // Afegirem aquests permisos amb les funcions corresponents.
       allow update, delete: if false;
+
+      match /categories/{categoriaId} {
+        allow read: if esMembre(llistaId);
+
+        allow create: if esMembre(llistaId)
+                      && categoriaValida()
+                      && request.resource.data.creadaEl == request.time;
+
+        // En editar una categoria només es pot canviar el nom.
+        allow update: if esMembre(llistaId)
+                      && categoriaValida()
+                      && request.resource.data.diff(resource.data)
+                          .affectedKeys().hasOnly(['nom']);
+
+        allow delete: if esMembre(llistaId);
+      }
     }
   }
 }
