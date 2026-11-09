@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="productes_obrir">Obrir productes</string>
+    <string name="productes_titol">Productes de %1$s</string>
+    <string name="productes_ajuda">Toca un producte per marcar-lo com a comprat. Mantén-lo premut per editar-lo o eliminar-lo.</string>
+    <string name="productes_afegir">Afegir producte</string>
+    <string name="productes_editar">Editar producte</string>
+    <string name="productes_eliminar">Eliminar producte</string>
+    <string name="productes_confirmar">Vols eliminar «%1$s»?</string>
+    <string name="productes_nom">Nom del producte</string>
+    <string name="productes_etiquetes">Etiquetes separades per comes (opcional)</string>
+    <string name="productes_error_nom">Escriu un nom d’entre 1 i 80 caràcters.</string>
+    <string name="productes_error_etiquetes">Les etiquetes poden ocupar com a màxim 200 caràcters.</string>
+    <string name="productes_desar">Desar</string>
+    <string name="productes_cancel">Cancel·lar</string>
+    <string name="productes_tornar">Tornar a les categories</string>
+    <string name="productes_carregant">Carregant productes…</string>
+    <string name="productes_buits">Aquesta categoria encara no té productes.</string>
+    <string name="productes_cache">Mostrant dades locals. Esperant sincronització…</string>
+    <string name="productes_pendents">Hi ha canvis pendents de sincronitzar.</string>
+    <string name="productes_desant">Desant el canvi…</string>
+    <string name="productes_desat">Canvi desat.</string>
+    <string name="productes_error">No s’ha pogut completar el canvi. Comprova la connexió i torna-ho a provar.</string>
+    <string name="productes_error_lectura">No es poden carregar els productes. Torna a entrar a la categoria.</string>
+    <string name="productes_categoria_plena">Primer elimina els productes de la categoria.</string>
+    <string name="productes_categoria_inexistent">La categoria ja no està disponible.</string>
+    <string name="productes_inexistent">Aquest producte ja no està disponible.</string>
+</resources>

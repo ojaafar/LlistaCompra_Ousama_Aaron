@@ -1,73 +1,89 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    function sessioIniciada() {
-      return request.auth != null;
-    }
-
+    function sessioIniciada() { return request.auth != null; }
     function nomValid(nom) {
-      return nom is string
-        && nom == nom.trim()
-        && nom.size() > 0
-        && nom.size() <= 80;
+      return nom is string && nom == nom.trim() && nom.size() > 0 && nom.size() <= 80;
     }
-
     function esMembre(llistaId) {
-      return sessioIniciada()
-        && request.auth.uid in
-          get(/databases/$(database)/documents/llistes/$(llistaId)).data.membres;
+      return sessioIniciada() && request.auth.uid in
+        get(/databases/$(database)/documents/llistes/$(llistaId)).data.membres;
     }
-
     function llistaNovaValida() {
-      let dades = request.resource.data;
-
-      return dades.keys().hasAll([
-          'nom', 'propietariId', 'membres', 'creadaEl'
-        ])
-        && dades.keys().hasOnly([
-          'nom', 'propietariId', 'membres', 'creadaEl'
-        ])
-        && nomValid(dades.nom)
-        && dades.propietariId == request.auth.uid
-        && dades.membres is list
-        && dades.membres == [request.auth.uid]
-        && dades.creadaEl == request.time;
+      let d = request.resource.data;
+      return d.keys().hasAll(['nom','propietariId','membres','creadaEl'])
+        && d.keys().hasOnly(['nom','propietariId','membres','creadaEl'])
+        && nomValid(d.nom) && d.propietariId == request.auth.uid
+        && d.membres is list && d.membres == [request.auth.uid]
+        && d.creadaEl == request.time;
     }
-
-    function categoriaValida() {
-      let dades = request.resource.data;
-
-      return dades.keys().hasAll(['nom', 'creadaEl'])
-        && dades.keys().hasOnly(['nom', 'creadaEl'])
-        && nomValid(dades.nom)
-        && dades.creadaEl is timestamp;
+    // Les categories antigues encara no tenen el comptador: comencen a zero.
+    function quantitat(d) { return d.get('numProductes', 0); }
+    function categoriaValida(d) {
+      return d.keys().hasAll(['nom','creadaEl'])
+        && d.keys().hasOnly(['nom','creadaEl','numProductes','canviProducte'])
+        && nomValid(d.nom) && d.creadaEl is timestamp
+        && quantitat(d) is int && quantitat(d) >= 0
+        && d.get('canviProducte', '') is string;
     }
-
+    function producteValid(d) {
+      return d.keys().hasAll(['nom','etiquetes','comprat','creatEl'])
+        && d.keys().hasOnly(['nom','etiquetes','comprat','creatEl'])
+        && nomValid(d.nom) && d.etiquetes is string
+        && d.etiquetes == d.etiquetes.trim() && d.etiquetes.size() <= 200
+        && d.comprat is bool && d.creatEl is timestamp;
+    }
     match /llistes/{llistaId} {
-      allow create: if sessioIniciada()
-                    && llistaNovaValida();
-
-      allow read: if sessioIniciada()
-                  && request.auth.uid in resource.data.membres;
-
+      allow create: if sessioIniciada() && llistaNovaValida();
+      allow read: if sessioIniciada() && request.auth.uid in resource.data.membres;
       allow update, delete: if false;
 
       match /categories/{categoriaId} {
+        // El comptador només pot canviar si un producte concret es crea
+        // o s'elimina en la MATEIXA operació atòmica.
+        function canviComptadorValid() {
+          let abans = resource.data;
+          let despres = request.resource.data;
+          let id = despres.canviProducte;
+          let p = /databases/$(database)/documents/llistes/$(llistaId)/categories/$(categoriaId)/productes/$(id);
+          return id is string && id.size() > 0 && id.size() <= 128
+            && id.matches('^[A-Za-z0-9_-]+$')
+            && despres.diff(abans).affectedKeys().hasOnly(['numProductes','canviProducte'])
+            && ((quantitat(despres) == quantitat(abans) + 1 && !exists(p) && existsAfter(p))
+              || (quantitat(despres) == quantitat(abans) - 1 && exists(p) && !existsAfter(p)));
+        }
         allow read: if esMembre(llistaId);
+        allow create: if esMembre(llistaId) && categoriaValida(request.resource.data)
+          && quantitat(request.resource.data) == 0
+          && request.resource.data.get('canviProducte', '') == ''
+          && request.resource.data.creadaEl == request.time;
+        allow update: if esMembre(llistaId) && categoriaValida(request.resource.data)
+          && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nom'])
+            || canviComptadorValid());
+        allow delete: if esMembre(llistaId) && quantitat(resource.data) == 0;
 
-        allow create: if esMembre(llistaId)
-                      && categoriaValida()
-                      && request.resource.data.creadaEl == request.time;
-
-        // En editar una categoria només es pot canviar el nom.
-        allow update: if esMembre(llistaId)
-                      && categoriaValida()
-                      && request.resource.data.diff(resource.data)
-                          .affectedKeys().hasOnly(['nom']);
-
-        allow delete: if esMembre(llistaId);
+        match /productes/{producteId} {
+          function categoriaPath() {
+            return /databases/$(database)/documents/llistes/$(llistaId)/categories/$(categoriaId);
+          }
+          function comptadorActualitzat(delta) {
+            let abans = get(categoriaPath()).data;
+            let despres = getAfter(categoriaPath()).data;
+            return quantitat(despres) == quantitat(abans) + delta
+              && despres.canviProducte == producteId;
+          }
+          allow read: if esMembre(llistaId) && exists(categoriaPath());
+          allow create: if esMembre(llistaId)
+            && producteValid(request.resource.data)
+            && request.resource.data.creatEl == request.time
+            && request.resource.data.comprat == false
+            && comptadorActualitzat(1);
+          allow update: if esMembre(llistaId) && existsAfter(categoriaPath())
+            && producteValid(request.resource.data)
+            && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['nom','etiquetes','comprat']);
+          allow delete: if esMembre(llistaId) && comptadorActualitzat(-1);
+        }
       }
     }
   }

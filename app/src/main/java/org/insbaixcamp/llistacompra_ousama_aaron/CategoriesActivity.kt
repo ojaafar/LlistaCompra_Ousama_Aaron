@@ -1,5 +1,6 @@
 package org.insbaixcamp.llistacompra_ousama_aaron
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.InputFilter
 import android.text.InputType
@@ -45,6 +46,7 @@ class CategoriesActivity : AppCompatActivity() {
 
     private var escolta: ListenerRegistration? = null
     private var desant = false
+    private var llistaActualId = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,6 +61,8 @@ class CategoriesActivity : AppCompatActivity() {
             finish()
             return
         }
+
+        llistaActualId = llistaId
 
         categoriesRef = db.collection("llistes")
             .document(llistaId)
@@ -190,6 +194,7 @@ class CategoriesActivity : AppCompatActivity() {
 
     private fun mostrarOpcions(categoria: Categoria) {
         val opcions = arrayOf(
+            getString(R.string.productes_obrir),
             getString(R.string.categories_editar),
             getString(R.string.categories_eliminar)
         )
@@ -198,8 +203,13 @@ class CategoriesActivity : AppCompatActivity() {
             .setTitle(categoria.nom)
             .setItems(opcions) { _, posicio ->
                 when (posicio) {
-                    0 -> mostrarEditor(categoria)
-                    1 -> confirmarEliminacio(categoria)
+                    0 -> startActivity(Intent(this, ProductesActivity::class.java).apply {
+                        putExtra("llistaId", llistaActualId)
+                        putExtra("categoriaId", categoria.id)
+                        putExtra("categoriaNom", categoria.nom)
+                    })
+                    1 -> mostrarEditor(categoria)
+                    2 -> confirmarEliminacio(categoria)
                 }
             }
             .setNegativeButton(R.string.categories_cancel, null)
@@ -253,7 +263,9 @@ class CategoriesActivity : AppCompatActivity() {
                     val tasca = if (categoria == null) {
                         val dades = hashMapOf<String, Any>(
                             "nom" to nom,
-                            "creadaEl" to FieldValue.serverTimestamp()
+                            "creadaEl" to FieldValue.serverTimestamp(),
+                            "numProductes" to 0L,
+                            "canviProducte" to ""
                         )
 
                         categoriesRef.document().set(dades)
@@ -283,14 +295,23 @@ class CategoriesActivity : AppCompatActivity() {
             .setPositiveButton(R.string.categories_eliminar) { _, _ ->
                 if (!desant && auth.currentUser != null) {
                     executarCanvi(
-                        categoriesRef.document(categoria.id).delete()
+                        db.runTransaction { transaccio ->
+                            val ref = categoriesRef.document(categoria.id)
+                            val document = transaccio.get(ref)
+                            check(document.exists()) { "CATEGORIA_INEXISTENT" }
+                            check((document.getLong("numProductes") ?: 0L) == 0L) {
+                                "CATEGORIA_AMB_PRODUCTES"
+                            }
+                            transaccio.delete(ref)
+                            null
+                        }
                     )
                 }
             }
             .show()
     }
 
-    private fun executarCanvi(tasca: Task<Void>) {
+    private fun executarCanvi(tasca: Task<*>) {
         desant = true
         btnAfegir.isEnabled = false
         lvCategories.isEnabled = false
@@ -319,7 +340,10 @@ class CategoriesActivity : AppCompatActivity() {
 
                 Toast.makeText(
                     this,
-                    R.string.categories_error_desar,
+                    if (generateSequence(resultat.exception as Throwable?) { it.cause }
+                        .any { it.message?.contains("CATEGORIA_AMB_PRODUCTES") == true })
+                        R.string.productes_categoria_plena
+                    else R.string.categories_error_desar,
                     Toast.LENGTH_LONG
                 ).show()
             }

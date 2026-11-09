@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/arrelProductes" android:layout_width="match_parent" android:layout_height="match_parent">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical" android:padding="24dp">
+        <TextView android:id="@+id/tvTitolProductes" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:textSize="24sp" android:textStyle="bold" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="12dp" android:text="@string/productes_ajuda" />
+        <Button android:id="@+id/btnAfegirProducte" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/productes_afegir" />
+        <TextView android:id="@+id/tvEstatProductes" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:accessibilityLiveRegion="polite"
+            android:text="@string/productes_carregant" android:layout_marginVertical="8dp" />
+        <ListView android:id="@+id/lvProductes" android:layout_width="match_parent"
+            android:layout_height="0dp" android:layout_weight="1" android:choiceMode="multipleChoice" />
+        <Button android:id="@+id/btnTornarCategories" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="@string/productes_tornar" />
+    </LinearLayout>
+</FrameLayout>
