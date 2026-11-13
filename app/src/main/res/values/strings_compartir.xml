@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="compartir_meu_codi">El meu codi per compartir</string>
+    <string name="compartir_explicacio_codi">Dona aquest codi a qui vulgui compartir una llista amb tu:\n\n%1$s\n\nIdentifica el teu compte. No és una contrasenya.</string>
+    <string name="compartir_instruccio">Mantén premuda una llista teva per compartir-la.</string>
+    <string name="compartir_copiar">Copiar codi</string>
+    <string name="compartir_tancar">Tancar</string>
+    <string name="compartir_cancel">Cancel·lar</string>
+    <string name="compartir_titol">Compartir «%1$s»</string>
+    <string name="compartir_permisos">Introdueix el codi de la persona que vols afegir. Podrà veure i gestionar les categories i els productes d’aquesta llista.</string>
+    <string name="compartir_codi_destinatari">Codi de la persona destinatària</string>
+    <string name="compartir_afegir">Donar accés</string>
+    <string name="compartir_fet">La persona ja té accés a la llista.</string>
+    <string name="compartir_codi_invalid">Copia el codi complet, sense espais.</string>
+    <string name="compartir_ja_membre">Aquesta persona ja té accés a la llista.</string>
+    <string name="compartir_nomes_propietari">Només el propietari pot compartir aquesta llista.</string>
+    <string name="compartir_error_codi">No s’ha pogut preparar el codi. Comprova la connexió i torna-ho a provar.</string>
+    <string name="compartir_error">No s’ha pogut donar accés. Comprova la connexió i el codi. La persona destinatària ha de prémer primer «El meu codi per compartir».</string>
+</resources>

@@ -33,10 +33,35 @@ service cloud.firestore {
         && d.etiquetes == d.etiquetes.trim() && d.etiquetes.size() <= 200
         && d.comprat is bool && d.creatEl is timestamp;
     }
+    // Cada compte només pot registrar el seu propi codi.
+    match /usuaris/{uid} {
+      allow get: if sessioIniciada() && request.auth.uid == uid;
+      allow list, delete: if false;
+      allow create, update: if sessioIniciada() && request.auth.uid == uid
+        && request.resource.data.keys().hasAll(['actiu'])
+        && request.resource.data.keys().hasOnly(['actiu'])
+        && request.resource.data.actiu == true;
+    }
+    function afegirMembreValid() {
+      let abans = resource.data.membres;
+      let despres = request.resource.data.membres;
+      let nous = despres.removeAll(abans);
+      return request.auth.uid == resource.data.propietariId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['membres'])
+        && despres is list
+        && despres.size() == abans.size() + 1
+        && despres.toSet().size() == despres.size()
+        && despres.hasAll(abans)
+        && nous.size() == 1
+        && nous[0] is string
+        && nous[0].matches('^[A-Za-z0-9_-]{1,128}$')
+        && exists(/databases/$(database)/documents/usuaris/$(nous[0]));
+    }
     match /llistes/{llistaId} {
       allow create: if sessioIniciada() && llistaNovaValida();
       allow read: if sessioIniciada() && request.auth.uid in resource.data.membres;
-      allow update, delete: if false;
+      allow update: if sessioIniciada() && afegirMembreValid();
+      allow delete: if false;
 
       match /categories/{categoriaId} {
         // El comptador només pot canviar si un producte concret es crea

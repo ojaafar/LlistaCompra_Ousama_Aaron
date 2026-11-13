@@ -1,5 +1,10 @@
 package org.insbaixcamp.llistacompra_ousama_aaron
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.text.InputFilter
+import androidx.appcompat.app.AlertDialog
 import android.os.Bundle
 import android.util.Log
 import android.widget.ArrayAdapter
@@ -32,6 +37,8 @@ class LlistesActivity : AppCompatActivity() {
 
     private var escoltaLlistes: ListenerRegistration? = null
     private var creant = false
+    private var compartint = false
+    private var propietaris: Map<String, String> = emptyMap()
 
     private var idsLlistes: List<String> = emptyList()
 
@@ -86,6 +93,17 @@ class LlistesActivity : AppCompatActivity() {
 
                 startActivity(pantalla)
             }
+
+        findViewById<Button>(R.id.btnMeuCodi).setOnClickListener { mostrarCodi() }
+
+        findViewById<ListView>(R.id.lvLlistes).setOnItemLongClickListener { _, _, posicio, _ ->
+            val id = idsLlistes.getOrNull(posicio)
+            if (id != null && !compartint) {
+                if (propietaris[id] == auth.currentUser?.uid) compartir(id, adaptador.getItem(posicio).orEmpty())
+                else Toast.makeText(this, R.string.compartir_nomes_propietari, Toast.LENGTH_LONG).show()
+            }
+            true
+        }
 
         btnCrearLlista.setOnClickListener {
             crearLlista()
@@ -156,6 +174,7 @@ class LlistesActivity : AppCompatActivity() {
                     document.id to nom
                 }.sortedBy { it.second.lowercase() }
 
+                propietaris = documents.documents.associate { it.id to it.getString("propietariId").orEmpty() }
                 idsLlistes = llistesOrdenades.map { it.first }
                 val noms = llistesOrdenades.map { it.second }
 
@@ -261,5 +280,100 @@ class LlistesActivity : AppCompatActivity() {
             if (activa) R.string.desant_llista
             else R.string.crear_llista
         )
+    }
+
+    // El codi identifica el destinatari; no és una contrasenya.
+    private fun mostrarCodi() {
+        val uid = auth.currentUser?.uid ?: return
+        val boto = findViewById<Button>(R.id.btnMeuCodi)
+        boto.isEnabled = false
+        // Registre mínim: no publiquem correus ni un directori d'usuaris.
+        db.collection("usuaris").document(uid).set(mapOf("actiu" to true))
+            .addOnCompleteListener { resultat ->
+                if (isFinishing || isDestroyed) return@addOnCompleteListener
+                boto.isEnabled = true
+                if (auth.currentUser?.uid != uid) return@addOnCompleteListener
+                if (!resultat.isSuccessful) {
+                    Log.e("Compartir", "Error preparant el codi", resultat.exception)
+                    Toast.makeText(this, R.string.compartir_error_codi, Toast.LENGTH_LONG).show()
+                    return@addOnCompleteListener
+                }
+                val text = TextView(this).apply {
+                    this.text = getString(R.string.compartir_explicacio_codi, uid)
+                    setTextIsSelectable(true)
+                    val marge = (24 * resources.displayMetrics.density).toInt()
+                    setPadding(marge, marge, marge, marge)
+                }
+                AlertDialog.Builder(this).setTitle(R.string.compartir_meu_codi)
+                    .setView(text)
+                    .setPositiveButton(R.string.compartir_copiar) { _, _ ->
+                        if (auth.currentUser?.uid == uid) {
+                            val portaRetalls = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            portaRetalls.setPrimaryClip(ClipData.newPlainText(getString(R.string.compartir_meu_codi), uid))
+                        }
+                    }.setNegativeButton(R.string.compartir_tancar, null).show()
+            }
+    }
+
+    private fun compartir(llistaId: String, nom: String) {
+        val uid = auth.currentUser?.uid ?: return
+        val camp = EditText(this).apply {
+            hint = getString(R.string.compartir_codi_destinatari)
+            setSingleLine(true)
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            filters = arrayOf(InputFilter.LengthFilter(128))
+        }
+        val dialeg = AlertDialog.Builder(this)
+            .setTitle(getString(R.string.compartir_titol, nom))
+            .setMessage(R.string.compartir_permisos)
+            .setView(camp)
+            .setPositiveButton(R.string.compartir_afegir, null)
+            .setNegativeButton(R.string.compartir_cancel, null).create()
+        dialeg.setOnShowListener {
+            dialeg.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                if (compartint) return@setOnClickListener
+                val altre = camp.text.toString().trim()
+                if (!altre.matches(Regex("[A-Za-z0-9_-]{1,128}"))) {
+                    camp.error = getString(R.string.compartir_codi_invalid)
+                    return@setOnClickListener
+                }
+                if (auth.currentUser?.uid != uid) { dialeg.dismiss(); return@setOnClickListener }
+                compartint = true
+                dialeg.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
+                camp.isEnabled = false
+                val ref = db.collection("llistes").document(llistaId)
+                // La transacció conserva els membres afegits per altres operacions.
+                db.runTransaction { t ->
+                    val doc = t.get(ref)
+                    check(doc.exists() && doc.getString("propietariId") == uid) { "NOMES_PROPIETARI" }
+                    val membres = (doc.get("membres") as? List<*>)?.filterIsInstance<String>().orEmpty()
+                    check(altre !in membres) { "JA_ES_MEMBRE" }
+                    t.update(ref, "membres", membres + altre)
+                    null
+                }.addOnCompleteListener { resultat ->
+                    if (isFinishing || isDestroyed) return@addOnCompleteListener
+                    compartint = false
+                    if (auth.currentUser?.uid != uid) { dialeg.dismiss(); return@addOnCompleteListener }
+                    if (resultat.isSuccessful) {
+                        dialeg.dismiss()
+                        Toast.makeText(this, R.string.compartir_fet, Toast.LENGTH_LONG).show()
+                    } else {
+                        Log.e("Compartir", "Error afegint membre", resultat.exception)
+                        val causes = generateSequence(resultat.exception as Throwable?) { it.cause }
+                            .map { it.message.orEmpty() }.toList()
+                        val missatge = when {
+                            causes.any { it.contains("JA_ES_MEMBRE") } -> R.string.compartir_ja_membre
+                            causes.any { it.contains("NOMES_PROPIETARI") } -> R.string.compartir_nomes_propietari
+                            else -> R.string.compartir_error
+                        }
+                        camp.isEnabled = true
+                        dialeg.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
+                        camp.error = getString(missatge)
+                        Toast.makeText(this, missatge, Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+        dialeg.show()
     }
 }
