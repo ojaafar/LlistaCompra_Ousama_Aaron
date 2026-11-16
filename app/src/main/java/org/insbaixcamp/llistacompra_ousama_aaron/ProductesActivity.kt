@@ -58,7 +58,7 @@ class ProductesActivity : AppCompatActivity() {
         llista = findViewById(R.id.lvProductes)
         afegir = findViewById(R.id.btnAfegirProducte)
         estat = findViewById(R.id.tvEstatProductes)
-        adaptador = ArrayAdapter(this, android.R.layout.simple_list_item_multiple_choice, mutableListOf<Producte>())
+        adaptador = ArrayAdapter(this, R.layout.item_product_row, mutableListOf<Producte>())
         llista.adapter = adaptador
         afegir.setOnClickListener { if (!desant) editor(null) }
         llista.setOnItemClickListener { _, _, posicio, _ ->

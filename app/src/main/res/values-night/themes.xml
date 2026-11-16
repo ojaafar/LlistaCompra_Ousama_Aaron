@@ -1,7 +1,13 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.LlistaCompra_Ousama_Aaron" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <item name="colorPrimary">@color/green_primary_darkmode</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorPrimaryContainer">@color/green_primary_container_darkmode</item>
+        <item name="colorOnPrimaryContainer">@color/green_on_primary_container_darkmode</item>
+        <item name="android:colorBackground">@color/bg_dark</item>
+        <item name="colorSurface">@color/surface_dark</item>
+        <item name="colorOnSurface">@color/text_primary_dark</item>
+        <item name="colorError">@color/error_red</item>
     </style>
 </resources>

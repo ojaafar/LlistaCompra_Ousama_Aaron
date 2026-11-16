@@ -4,46 +4,66 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
     android:fillViewport="true"
     tools:context=".MainActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
+        android:gravity="center"
         android:orientation="vertical"
         android:padding="24dp">
 
+        <!-- Header amb icona i títol -->
+        <ImageView
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginBottom="12dp"
+            android:contentDescription="@string/titol_acces"
+            android:src="@drawable/ic_shopping_bag" />
+
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             android:text="@string/titol_acces"
-            android:textSize="28sp"
+            android:textColor="?attr/colorPrimary"
+            android:textSize="26sp"
             android:textStyle="bold" />
 
+        <!-- Formulari d'Accés en Targeta -->
         <LinearLayout
             android:id="@+id/formulari"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="20dp">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:text="@string/indicacio_acces" />
+                android:text="@string/indicacio_acces"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="14sp" />
 
             <EditText
                 android:id="@+id/etCorreu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:autofillHints="emailAddress"
+                android:background="@drawable/bg_edittext"
                 android:hint="@string/correu"
                 android:imeOptions="actionNext"
                 android:inputType="textEmailAddress"
-                android:minHeight="48dp"
-                android:singleLine="true" />
+                android:minHeight="50dp"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="12dp"
+                android:singleLine="true"
+                android:textColor="?attr/colorOnSurface"
+                android:textColorHint="?attr/colorOnSurface" />
 
             <EditText
                 android:id="@+id/etContrasenya"
@@ -51,11 +71,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:autofillHints="password"
+                android:background="@drawable/bg_edittext"
                 android:hint="@string/contrasenya"
                 android:inputType="textPassword"
-                android:minHeight="48dp"
+                android:minHeight="50dp"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="12dp"
                 android:saveEnabled="false"
-                android:singleLine="true" />
+                android:singleLine="true"
+                android:textColor="?attr/colorOnSurface"
+                android:textColorHint="?attr/colorOnSurface" />
 
             <TextView
                 android:id="@+id/tvError"
@@ -64,20 +89,25 @@
                 android:layout_marginTop="12dp"
                 android:accessibilityLiveRegion="polite"
                 android:textColor="?attr/colorError"
+                android:textSize="14sp"
                 android:visibility="gone" />
 
             <Button
                 android:id="@+id/btnEntrar"
+                style="@style/Widget.Material3.Button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="20dp"
+                android:minHeight="48dp"
                 android:text="@string/entrar" />
 
             <Button
                 android:id="@+id/btnRegistrar"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:minHeight="48dp"
                 android:text="@string/crear_compte" />
 
         </LinearLayout>
@@ -91,18 +121,22 @@
             android:contentDescription="@string/carregant"
             android:visibility="gone" />
 
+        <!-- Panell de Sessió en Targeta -->
         <LinearLayout
             android:id="@+id/panellSessio"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/bg_card"
             android:orientation="vertical"
+            android:padding="20dp"
             android:visibility="gone">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/sessio_iniciada"
-                android:textSize="22sp"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="20sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -110,22 +144,31 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
+                android:background="@drawable/bg_info_box"
+                android:padding="12dp"
+                android:textColor="?attr/colorOnPrimaryContainer"
                 android:textIsSelectable="true"
-                android:textSize="16sp" />
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
             <Button
                 android:id="@+id/btnObrirLlistes"
+                style="@style/Widget.Material3.Button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="20dp"
+                android:minHeight="48dp"
                 android:text="@string/les_meves_llistes" />
 
             <Button
                 android:id="@+id/btnSortir"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="@string/tancar_sessio" />
+                android:minHeight="48dp"
+                android:text="@string/tancar_sessio"
+                android:textColor="?attr/colorError" />
 
         </LinearLayout>
 

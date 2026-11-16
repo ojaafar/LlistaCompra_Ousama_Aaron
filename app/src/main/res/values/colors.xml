@@ -2,4 +2,37 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Verde Principal y Variantes -->
+    <color name="green_primary">#2E7D32</color>
+    <color name="green_primary_dark">#1B5E20</color>
+    <color name="green_primary_container">#E8F5E9</color>
+    <color name="green_on_primary_container">#1B5E20</color>
+
+    <!-- Modo Oscuro Variantes de Verde -->
+    <color name="green_primary_darkmode">#81C784</color>
+    <color name="green_primary_container_darkmode">#1B4D20</color>
+    <color name="green_on_primary_container_darkmode">#C8E6C9</color>
+
+    <!-- Fondos y Superficies -->
+    <color name="bg_light">#F6F8F6</color>
+    <color name="surface_light">#FFFFFFFF</color>
+    <color name="border_light">#E0E4E0</color>
+    <color name="info_bg_light">#EAF4EC</color>
+
+    <color name="bg_dark">#121412</color>
+    <color name="surface_dark">#1E221E</color>
+    <color name="border_dark">#2C322C</color>
+    <color name="info_bg_dark">#1B2E1C</color>
+
+    <!-- Textos -->
+    <color name="text_primary_light">#1A1C1A</color>
+    <color name="text_secondary_light">#5B605B</color>
+
+    <color name="text_primary_dark">#E2E3E2</color>
+    <color name="text_secondary_dark">#A0A6A0</color>
+
+    <!-- Estado y Error -->
+    <color name="error_red">#B00020</color>
+    <color name="error_container_light">#FCE8E6</color>
 </resources>

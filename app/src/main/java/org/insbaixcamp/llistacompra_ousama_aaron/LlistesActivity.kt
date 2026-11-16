@@ -74,7 +74,8 @@ class LlistesActivity : AppCompatActivity() {
         // Connecta els noms de les llistes amb el ListView.
         adaptador = ArrayAdapter(
             this,
-            android.R.layout.simple_list_item_1,
+            R.layout.item_simple_row,
+            R.id.tvItemNom,
             mutableListOf<String>()
         )
 
