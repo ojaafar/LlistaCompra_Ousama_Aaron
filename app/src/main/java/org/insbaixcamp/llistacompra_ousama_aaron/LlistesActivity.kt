@@ -23,6 +23,10 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.MetadataChanges
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.Source
+import com.google.android.gms.tasks.Task
+import com.google.android.gms.tasks.Tasks
 import android.content.Intent
 
 class LlistesActivity : AppCompatActivity() {
@@ -38,6 +42,8 @@ class LlistesActivity : AppCompatActivity() {
     private var escoltaLlistes: ListenerRegistration? = null
     private var creant = false
     private var compartint = false
+    private var eliminant = false
+    private var pendentsEliminar: Set<String> = emptySet()
     private var propietaris: Map<String, String> = emptyMap()
 
     private var idsLlistes: List<String> = emptyList()
@@ -85,6 +91,10 @@ class LlistesActivity : AppCompatActivity() {
                 val id = idsLlistes.getOrNull(posicio)
                     ?: return@setOnItemClickListener
 
+                if (id in pendentsEliminar) {
+                    opcionsLlista(id, adaptador.getItem(posicio).orEmpty())
+                    return@setOnItemClickListener
+                }
                 val nom = adaptador.getItem(posicio).orEmpty()
 
                 val pantalla = Intent(this, CategoriesActivity::class.java).apply {
@@ -99,8 +109,8 @@ class LlistesActivity : AppCompatActivity() {
 
         findViewById<ListView>(R.id.lvLlistes).setOnItemLongClickListener { _, _, posicio, _ ->
             val id = idsLlistes.getOrNull(posicio)
-            if (id != null && !compartint) {
-                if (propietaris[id] == auth.currentUser?.uid) compartir(id, adaptador.getItem(posicio).orEmpty())
+            if (id != null && !compartint && !eliminant) {
+                if (propietaris[id] == auth.currentUser?.uid) opcionsLlista(id, adaptador.getItem(posicio).orEmpty())
                 else Toast.makeText(this, R.string.compartir_nomes_propietari, Toast.LENGTH_LONG).show()
             }
             true
@@ -170,9 +180,13 @@ class LlistesActivity : AppCompatActivity() {
 
                 // Ordenem els noms alfabèticament al mòbil.
                 // Conservem junts l'identificador i el nom de cada llista.
+                pendentsEliminar = documents.documents.filter { it.getBoolean("eliminant") == true }
+                    .map { it.id }.toSet()
                 val llistesOrdenades = documents.documents.mapNotNull { document ->
+                    if (document.id in pendentsEliminar && document.getString("propietariId") != uid)
+                        return@mapNotNull null
                     val nom = document.getString("nom") ?: return@mapNotNull null
-                    document.id to nom
+                    document.id to if (document.id in pendentsEliminar) getString(R.string.eliminar_pendent, nom) else nom
                 }.sortedBy { it.second.lowercase() }
 
                 propietaris = documents.documents.associate { it.id to it.getString("propietariId").orEmpty() }
@@ -346,7 +360,7 @@ class LlistesActivity : AppCompatActivity() {
                 // La transacció conserva els membres afegits per altres operacions.
                 db.runTransaction { t ->
                     val doc = t.get(ref)
-                    check(doc.exists() && doc.getString("propietariId") == uid) { "NOMES_PROPIETARI" }
+                    check(doc.exists() && doc.getString("propietariId") == uid && doc.getBoolean("eliminant") != true) { "NOMES_PROPIETARI" }
                     val membres = (doc.get("membres") as? List<*>)?.filterIsInstance<String>().orEmpty()
                     check(altre !in membres) { "JA_ES_MEMBRE" }
                     t.update(ref, "membres", membres + altre)
@@ -376,5 +390,84 @@ class LlistesActivity : AppCompatActivity() {
             }
         }
         dialeg.show()
+    }
+
+    private fun opcionsLlista(id: String, nom: String) {
+        if (eliminant || compartint) return
+        if (propietaris[id] != auth.currentUser?.uid) return
+        if (id in pendentsEliminar) {
+            confirmarEliminacio(id, nom)
+            return
+        }
+        AlertDialog.Builder(this).setTitle(nom)
+            .setItems(arrayOf(getString(R.string.eliminar_compartir), getString(R.string.eliminar_opcio))) { _, opcio ->
+                if (opcio == 0) compartir(id, nom) else confirmarEliminacio(id, nom)
+            }.setNegativeButton(R.string.compartir_cancel, null).show()
+    }
+
+    private fun confirmarEliminacio(id: String, nom: String) {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.eliminar_titol, nom))
+            .setMessage(R.string.eliminar_confirmacio)
+            .setNegativeButton(R.string.compartir_cancel, null)
+            .setPositiveButton(R.string.eliminar_opcio) { _, _ -> eliminarLlista(id) }.show()
+    }
+
+    private fun eliminarLlista(id: String) {
+        if (eliminant || compartint) return
+        val uid = auth.currentUser?.uid ?: return
+        val ref = db.collection("llistes").document(id)
+        eliminant = true
+        Toast.makeText(this, R.string.eliminar_en_curs, Toast.LENGTH_LONG).show()
+        // Primer bloquegem les escriptures dels membres. Si es tanca l'app,
+        // la marca permet reprendre la neteja en tornar a entrar.
+        db.runTransaction { t ->
+            val doc = t.get(ref)
+            if (!doc.exists()) false
+            else {
+                check(doc.getString("propietariId") == uid) { "NOMES_PROPIETARI" }
+                if (doc.getBoolean("eliminant") != true) t.update(ref, "eliminant", true)
+                true
+            }
+        }.onSuccessTask { existeix ->
+            if (existeix) buidarCategories(ref, uid) else Tasks.forResult<Void>(null)
+        }.addOnCompleteListener { resultat ->
+            eliminant = false
+            if (isFinishing || isDestroyed || auth.currentUser?.uid != uid) return@addOnCompleteListener
+            if (!resultat.isSuccessful) Log.e("Eliminar", "Eliminacio interrompuda", resultat.exception)
+            Toast.makeText(this,
+                if (resultat.isSuccessful) R.string.eliminar_fet else R.string.eliminar_error,
+                Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun comprovarSessio(uid: String) {
+        check(auth.currentUser?.uid == uid) { "SESSIO_CANVIADA" }
+    }
+
+    private fun buidarCategories(llista: DocumentReference, uid: String): Task<Void> {
+        // Llegim del servidor: una memòria cau incompleta no prova que estigui buida.
+        return llista.collection("categories").limit(1).get(Source.SERVER).onSuccessTask { resultat ->
+            comprovarSessio(uid)
+            val categoria = resultat.documents.firstOrNull()?.reference
+            if (categoria == null) llista.delete()
+            else buidarProductes(categoria, uid).onSuccessTask {
+                comprovarSessio(uid)
+                categoria.delete()
+            }.onSuccessTask { buidarCategories(llista, uid) }
+        }
+    }
+
+    private fun buidarProductes(categoria: DocumentReference, uid: String): Task<Void> {
+        // Lots petits i seqüencials; no carreguem tota la llista en memòria.
+        return categoria.collection("productes").limit(10).get(Source.SERVER).onSuccessTask { resultat ->
+            comprovarSessio(uid)
+            if (resultat.isEmpty) Tasks.forResult<Void>(null)
+            else {
+                val lot = db.batch()
+                resultat.documents.forEach { lot.delete(it.reference) }
+                lot.commit().onSuccessTask { buidarProductes(categoria, uid) }
+            }
+        }
     }
 }

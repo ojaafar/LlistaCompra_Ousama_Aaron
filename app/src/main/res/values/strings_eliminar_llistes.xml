@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="eliminar_compartir">Compartir</string>
+    <string name="eliminar_opcio">Eliminar llista</string>
+    <string name="eliminar_titol">Eliminar «%1$s»?</string>
+    <string name="eliminar_confirmacio">S’eliminaran definitivament aquesta llista, les categories i els productes per a tots els membres. Cal connexió a Internet. Un cop iniciat, no es pot desfer.</string>
+    <string name="eliminar_en_curs">Eliminant la llista… Mantén l’aplicació oberta.</string>
+    <string name="eliminar_fet">Llista eliminada.</string>
+    <string name="eliminar_error">No s’ha completat l’eliminació. Comprova la connexió i torna-ho a provar. Si ja ha començat, la llista queda bloquejada i pots reprendre l’eliminació tocant-la.</string>
+    <string name="eliminar_pendent">%1$s · Eliminació pendent (toca per reprendre)</string>
+</resources>

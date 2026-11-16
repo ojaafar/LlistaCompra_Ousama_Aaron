@@ -6,8 +6,21 @@ service cloud.firestore {
       return nom is string && nom == nom.trim() && nom.size() > 0 && nom.size() <= 80;
     }
     function esMembre(llistaId) {
-      return sessioIniciada() && request.auth.uid in
-        get(/databases/$(database)/documents/llistes/$(llistaId)).data.membres;
+      let dades = get(/databases/$(database)/documents/llistes/$(llistaId)).data;
+      return sessioIniciada() && request.auth.uid in dades.membres
+        && dades.get('eliminant', false) == false;
+    }
+    // Nomes el propietari pot netejar una llista bloquejada per eliminar.
+    function propietariEliminant(llistaId) {
+      let dades = get(/databases/$(database)/documents/llistes/$(llistaId)).data;
+      return sessioIniciada() && dades.propietariId == request.auth.uid
+        && dades.get('eliminant', false) == true;
+    }
+    function iniciarEliminacio() {
+      return request.auth.uid == resource.data.propietariId
+        && resource.data.get('eliminant', false) == false
+        && request.resource.data.eliminant == true
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['eliminant']);
     }
     function llistaNovaValida() {
       let d = request.resource.data;
@@ -60,8 +73,11 @@ service cloud.firestore {
     match /llistes/{llistaId} {
       allow create: if sessioIniciada() && llistaNovaValida();
       allow read: if sessioIniciada() && request.auth.uid in resource.data.membres;
-      allow update: if sessioIniciada() && afegirMembreValid();
-      allow delete: if false;
+      allow update: if sessioIniciada()
+        && ((resource.data.get('eliminant', false) == false && afegirMembreValid())
+          || iniciarEliminacio());
+      allow delete: if sessioIniciada() && resource.data.propietariId == request.auth.uid
+        && resource.data.get('eliminant', false) == true;
 
       match /categories/{categoriaId} {
         // El comptador només pot canviar si un producte concret es crea
@@ -77,7 +93,7 @@ service cloud.firestore {
             && ((quantitat(despres) == quantitat(abans) + 1 && !exists(p) && existsAfter(p))
               || (quantitat(despres) == quantitat(abans) - 1 && exists(p) && !existsAfter(p)));
         }
-        allow read: if esMembre(llistaId);
+        allow read: if esMembre(llistaId) || propietariEliminant(llistaId);
         allow create: if esMembre(llistaId) && categoriaValida(request.resource.data)
           && quantitat(request.resource.data) == 0
           && request.resource.data.get('canviProducte', '') == ''
@@ -85,7 +101,8 @@ service cloud.firestore {
         allow update: if esMembre(llistaId) && categoriaValida(request.resource.data)
           && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nom'])
             || canviComptadorValid());
-        allow delete: if esMembre(llistaId) && quantitat(resource.data) == 0;
+        allow delete: if propietariEliminant(llistaId)
+          || (esMembre(llistaId) && quantitat(resource.data) == 0);
 
         match /productes/{producteId} {
           function categoriaPath() {
@@ -97,7 +114,8 @@ service cloud.firestore {
             return quantitat(despres) == quantitat(abans) + delta
               && despres.canviProducte == producteId;
           }
-          allow read: if esMembre(llistaId) && exists(categoriaPath());
+          allow read: if propietariEliminant(llistaId)
+            || (esMembre(llistaId) && exists(categoriaPath()));
           allow create: if esMembre(llistaId)
             && producteValid(request.resource.data)
             && request.resource.data.creatEl == request.time
@@ -107,7 +125,8 @@ service cloud.firestore {
             && producteValid(request.resource.data)
             && request.resource.data.diff(resource.data).affectedKeys()
               .hasOnly(['nom','etiquetes','comprat']);
-          allow delete: if esMembre(llistaId) && comptadorActualitzat(-1);
+          allow delete: if propietariEliminant(llistaId)
+            || (esMembre(llistaId) && comptadorActualitzat(-1));
         }
       }
     }
